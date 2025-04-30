@@ -40,6 +40,8 @@ class ScraperTools(WaitUntilElement, FindElement):
 		if not init:
 			return
 		tic = perf_counter()
+		display = Display(visible=0, size=(800, 600))
+		display.start()
 		capabilities = DesiredCapabilities.CHROME
 		capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}  # type: ignore[assignment]
 		options = uc.ChromeOptions()
