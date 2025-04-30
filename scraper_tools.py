@@ -18,6 +18,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import undetected_chromedriver as uc
+from pyvirtualdisplay import Display
+
 
 from element_find import FindElement
 from element_wait_until import WaitUntilElement
@@ -38,6 +40,8 @@ class ScraperTools(WaitUntilElement, FindElement):
 		if not init:
 			return
 		tic = perf_counter()
+		display = Display(visible=0, size=(800, 600))
+		display.start()
 		capabilities = DesiredCapabilities.CHROME
 		capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}  # type: ignore[assignment]
 		options = uc.ChromeOptions()
