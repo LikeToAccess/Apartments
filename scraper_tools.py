@@ -17,7 +17,9 @@ from collections.abc import Callable
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-import undetected_chromedriver as uc  # type: ignore[import-untyped]
+import undetected_chromedriver as uc
+from pyvirtualdisplay import Display
+
 
 from element_find import FindElement
 from element_wait_until import WaitUntilElement
@@ -40,11 +42,11 @@ class ScraperTools(WaitUntilElement, FindElement):
 		tic = perf_counter()
 		capabilities = DesiredCapabilities.CHROME
 		capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}  # type: ignore[assignment]
-		options = Options()
+		options = uc.ChromeOptions()
 		# user_data_dir = os.path.abspath("selenium_data")
 		# options.add_argument("--autoplay-policy=no-user-gesture-required")
 		# options.add_argument("log-level=3")
-		# # options.add_argument("--no-sandbox")
+		options.add_argument("--no-sandbox")
 		# options.add_experimental_option("prefs", {"download_restrictions": 3})  # Disable downloads
 		# options.add_argument(f"user-data-dir={user_data_dir}")
 		# options.add_argument("--ignore-certificate-errors-spki-list")
@@ -55,7 +57,7 @@ class ScraperTools(WaitUntilElement, FindElement):
 		# 	options.add_argument("--window-size=1920,1080")
 		# 	# options.add_argument("--disable-gpu")
 		# 	options.add_argument("--mute-audio")
-		self.driver = uc.Chrome(service=Service(), options=options)
+		self.driver = uc.Chrome(options=options)
 		super().__init__(self.driver)
 		toc = perf_counter()
 		print(f"Completed init in {toc-tic:.2f}s.")
