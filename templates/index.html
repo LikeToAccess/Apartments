@@ -9,86 +9,43 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Add focus styles for accessibility */
-        select:focus, input:focus, button:focus {
-             outline: 2px solid #3b82f6; /* blue-500 */
-             outline-offset: 2px;
-        }
-        /* Basic styling for multi-select */
-        select[multiple] {
-            min-height: 100px; /* Give it some height */
-            background-image: none; /* Remove default arrow */
-            padding: 0.5rem; /* Add padding */
-        }
-        select[multiple] option {
-             padding: 0.25rem 0.5rem; /* Padding for options */
-        }
-        /* Style for checkbox */
-        .form-checkbox {
-            appearance: none;
-            padding: 0;
-            display: inline-block;
-            vertical-align: middle;
-            background-origin: border-box;
-            user-select: none;
-            flex-shrink: 0;
-            height: 1rem;
-            width: 1rem;
-            color: #3b82f6; /* blue-500 */
-            background-color: #fff;
-            border-color: #6b7280; /* gray-500 */
-            border-width: 1px;
-            border-radius: 0.25rem; /* rounded */
-        }
-        .form-checkbox:checked {
-            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
-            border-color: transparent;
-            background-color: currentColor;
-            background-size: 100% 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        /* Removed .updated-badge style from here */
-    </style>
-</head>
+    </head>
 <body class="bg-gray-100 p-4 md:p-8">
 
     <div class="container mx-auto max-w-7xl bg-white rounded-lg shadow-lg p-5">
         <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Apartment Availability</h1>
 
-        <div class="text-center mb-6">
+        <div class="text-center mb-6 flex flex-wrap justify-center items-center gap-4">
             <button id="update-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                 Check for Updates
             </button>
-            <span id="update-status" class="ml-4 text-gray-600"></span>
+            <button id="toggle-map-button" class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50">
+                Show Map
+            </button>
+            <span id="update-status" class="text-gray-600 w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0"></span>
         </div>
 
         <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-start">
                 <div class="xl:col-span-2">
                     <label for="filter-building" class="block text-sm font-medium text-gray-700 mb-1">Filter by Building</label>
-                    <select id="filter-building" name="filter-building" multiple class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    <select id="filter-building" name="filter-building" multiple size="4" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                         <title>Hold Ctrl/Cmd to select multiple</title>
                         </select>
                      <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple.</p>
                 </div>
-
                 <div>
                     <label for="filter-floor" class="block text-sm font-medium text-gray-700 mb-1">Filter by Floor</label>
-                    <select id="filter-floor" name="filter-floor" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    <select id="filter-floor" name="filter-floor" multiple size="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                         <option value="all">All Floors</option>
                         </select>
                 </div>
-
                 <div>
                     <label for="filter-style" class="block text-sm font-medium text-gray-700 mb-1">Filter by Style</label>
                     <select id="filter-style" name="filter-style" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                         <option value="all">All Styles</option>
                         </select>
                 </div>
-
                 <div>
                     <label for="sort-by" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
                     <select id="sort-by" name="sort-by" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
@@ -100,14 +57,12 @@
                         <option value="floor-desc">Floor (High to Low)</option>
                         <option value="updated-desc">Updated (Newest)</option>
                         <option value="updated-asc">Updated (Oldest)</option>
-                    </select>
+                        <option value="location_point_index-asc">Location (Low to High)</option> <option value="location_point_index-desc">Location (High to Low)</option> </select>
                 </div>
-
                  <div class="flex items-center pt-7">
                      <input id="filter-updated" name="filter-updated" type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                      <label for="filter-updated" class="ml-2 block text-sm font-medium text-gray-700">Show Updated Only</label>
                  </div>
-
                  <div class="self-end xl:col-start-6">
                     <button id="reset-filters" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
                         Reset Filters
@@ -117,6 +72,9 @@
         </div>
 
          <div id="loading" class="text-center text-gray-500 py-4">Loading apartment data...</div>
+
+         <div id="map-display-container" class="mb-6 border border-gray-300 rounded-lg overflow-hidden" style="display: none;">
+             </div>
 
         <div id="apartment-list" class="mt-6">
             <p id="results-count" class="text-sm text-gray-600 mb-4"></p>

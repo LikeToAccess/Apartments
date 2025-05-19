@@ -1,136 +1,221 @@
 /* Custom CSS - Can override or supplement Tailwind */
 body {
-    font-family: 'Inter', sans-serif; /* Ensure Inter font is applied */
+	font-family: 'Inter', sans-serif; /* Ensure Inter font is applied */
 }
 
 /* Style for the apartment list cards */
 .apartment-card {
-    background-color: #fff;
-    border: 1px solid #e5e7eb; /* gray-200 */
-    border-radius: 0.5rem; /* rounded-lg */
-    padding: 1rem; /* p-4 */
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
-    transition: box-shadow 0.3s ease-in-out;
-    display: flex; /* Use flexbox for layout */
-    flex-direction: column; /* Stack content vertically */
-    justify-content: space-between; /* Push link to bottom */
-    height: 100%; /* Make cards fill grid cell height */
-    position: relative; /* Needed for absolute positioning of the badge */
-    overflow: hidden; /* Hide badge overflow if needed */
+	background-color: #fff;
+	border: 1px solid #e5e7eb; /* gray-200 */
+	border-radius: 0.5rem; /* rounded-lg */
+	padding: 1rem; /* p-4 */
+	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
+	transition: box-shadow 0.3s ease-in-out;
+	display: flex; /* Use flexbox for layout */
+	flex-direction: column; /* Stack content vertically */
+	justify-content: space-between; /* Push link to bottom */
+	height: 100%; /* Make cards fill grid cell height */
+	position: relative; /* Needed for absolute positioning of the badge */
+	overflow: hidden; /* Hide badge overflow if needed */
 }
 
 .apartment-card:hover {
-     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+	 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
 }
 
-.apartment-card h3 {
-    margin-bottom: 0.5rem; /* mb-2 */
-}
-
-.apartment-card p, .apartment-card ul {
-    margin-bottom: 0.5rem; /* mb-2 */
-}
-
-.apartment-card a {
-    margin-top: auto; /* Push link to the bottom */
-    align-self: flex-start; /* Align link to the start */
-}
+.apartment-card h3 { margin-bottom: 0.5rem; /* mb-2 */ }
+.apartment-card p, .apartment-card ul { margin-bottom: 0.5rem; /* mb-2 */ }
+.apartment-card a { margin-top: auto; align-self: flex-start; }
 
 /* Ensure select dropdown arrows are visible for single select */
 select:not([multiple]) {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.5rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-    padding-right: 2.5rem;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+	background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em;
+	padding-right: 2.5rem; -webkit-appearance: none; -moz-appearance: none; appearance: none;
 }
 
 /* Basic styling for multi-select */
-select[multiple] {
-    min-height: 100px; /* Give it some height */
-    background-image: none; /* Remove default arrow */
-    padding: 0.5rem; /* Add padding */
-    overflow-y: auto; /* Add scrollbar if needed */
-}
+select[multiple] { min-height: 100px; background-image: none; padding: 0.5rem; overflow-y: auto; }
 select[multiple] option {
-    padding: 0.25rem 0.5rem; /* Padding for options */
+    padding: 0.25rem 0.5rem;
+    word-break: normal; /* Default, but good to be explicit */
+    overflow-wrap: break-word; /* Allow breaking long words to prevent overflow */
 }
-/* Indicate selected state in multi-select */
-select[multiple] option:checked {
-    background-color: #dbeafe; /* blue-100 */
-    color: #1e40af; /* blue-800 */
-    font-weight: 500;
+select[multiple] option:checked { background-color: #dbeafe; /* Tailwind blue-100 */ color: #1e40af; /* Tailwind blue-800 */ font-weight: 500; }
+
+#filter-building {
+    column-count: 2;
+    column-gap: 10px; /* Adjust gap between columns */
 }
 
-/* Style for the 'Updated' badge */
+/* Style for the 'Updated' badge on cards */
 .updated-badge {
-    position: absolute;
-    top: 8px; /* Adjust position */
-    right: 8px;
-    background-color: #fbbf24; /* amber-400 */
-    color: #78350f; /* amber-900 */
-    font-size: 0.65rem; /* text-xs */
-    line-height: 1; /* Ensure text fits */
-    font-weight: 600;
-    padding: 3px 6px; /* Adjust padding */
-    border-radius: 9999px; /* rounded-full */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    z-index: 5; /* Ensure badge is above other content */
+	position: absolute; top: 8px; right: 8px; background-color: #fbbf24; /* amber-400 */
+	color: #78350f; /* amber-900 */ font-size: 0.65rem; line-height: 1; font-weight: 600;
+	padding: 3px 6px; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 5;
 }
 
-/* Basic Checkbox Styling (Tailwind applies most of this via classes) */
+/* Basic Checkbox Styling */
 .form-checkbox {
-    appearance: none;
-    padding: 0;
-    display: inline-block;
-    vertical-align: middle;
-    background-origin: border-box;
-    user-select: none;
-    flex-shrink: 0;
-    height: 1rem; /* h-4 */
-    width: 1rem; /* w-4 */
-    color: #4f46e5; /* indigo-600 */
-    background-color: #fff;
-    border-color: #6b7280; /* gray-400 */
-    border-width: 1px;
-    border-radius: 0.25rem; /* rounded */
+	appearance: none; padding: 0; display: inline-block; vertical-align: middle;
+	background-origin: border-box; user-select: none; flex-shrink: 0; height: 1rem; width: 1rem;
+	color: #4f46e5; /* Tailwind indigo-600 */ background-color: #fff; border-color: #6b7280; /* Tailwind gray-500 */ border-width: 1px; border-radius: 0.25rem;
 }
-
 .form-checkbox:checked {
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
-    border-color: transparent;
-    background-color: currentColor; /* Uses the text color specified (indigo-600) */
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
+	background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+	border-color: transparent; background-color: currentColor; background-size: 100% 100%;
+	background-position: center; background-repeat: no-repeat;
 }
-
 .form-checkbox:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    --tw-ring-inset: var(--tw-empty,/*!*/ /*!*/);
-    --tw-ring-offset-width: 2px;
-    --tw-ring-offset-color: #fff;
-    --tw-ring-color: #6366f1; /* indigo-500 */
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-    border-color: #6366f1; /* indigo-500 */
+	outline: 2px solid transparent; outline-offset: 2px; --tw-ring-inset: var(--tw-empty,/*!*/ /*!*/);
+	--tw-ring-offset-width: 2px; --tw-ring-offset-color: #fff; --tw-ring-color: #6366f1; /* Tailwind indigo-500 */
+	--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+	--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+	box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+	border-color: #6366f1; /* Tailwind indigo-500 */
 }
 
-
-/* Add focus styles for accessibility */
+/* Focus styles */
 select:focus, input:focus, button:focus {
-    outline: 2px solid #3b82f6; /* Equivalent to focus:ring-blue-500 */
-    outline-offset: 2px;
-    border-color: #3b82f6; /* Optional: change border color on focus */
+	outline: 2px solid #3b82f6; /* Tailwind blue-500 */
+	outline-offset: 2px;
+	border-color: #3b82f6; /* Tailwind blue-500 */
 }
 
-/* Style for disabled button */
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+/* Disabled button */
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+/* --- Map Display Styles --- */
+#map-display-container {
+	position: relative; /* Crucial for absolute positioning of points and popover */
+	width: 100%;
+	max-width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #f9fafb; /* bg-gray-50 for loading/error */
+	min-height: 200px;
+	border: 1px solid #d1d5db; /* Tailwind gray-300 */
+	border-radius: 0.375rem; /* rounded-md */
+	overflow: hidden; /* Helps contain absolutely positioned children if they overflow due to transform */
+}
+
+#map-display-container img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.location-point {
+	position: absolute;
+	width: 12px;   /* Slightly larger points */
+	height: 12px;
+	background-color: #ef4444; /* Red color for points (bg-red-500) */
+	border: 2px solid #fee2e2; /* Lighter red border for contrast (red-100) */
+	border-radius: 50%; /* Make it a circle */
+	transform: translate(-50%, -50%); /* Center the point on its coordinates */
+	box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+	z-index: 10;
+	cursor: pointer; /* Indicate points are clickable */
+	pointer-events: auto; /* Ensure points can receive events */
+}
+
+.location-point:hover {
+	background-color: #dc2626; /* Darker red on hover (bg-red-600) */
+}
+
+/* --- Map Point Popover Styles --- */
+.map-point-popover {
+	position: absolute;
+	background-color: white;
+	border: 1px solid #d1d5db; /* Tailwind gray-300 */
+	border-radius: 0.375rem; /* rounded-md */
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+	padding: 0.75rem; /* p-3 */
+	z-index: 100; /* Above map points */
+	width: auto; /* Adjust based on content */
+	min-width: 200px; /* Minimum width */
+	max-width: 280px; /* Maximum width */
+	pointer-events: auto; /* Allow interaction with content like links */
+	display: none; /* Initially hidden */
+	font-size: 0.875rem; /* text-sm */
+	line-height: 1.25rem;
+	/* Add margin for the arrow */
+	margin-left: 10px; /* Default margin when on right */
+	margin-right: 10px; /* Default margin when on left */
+}
+
+/* Popover Arrow Base Style (Hidden by default) */
+.map-point-popover::before {
+	content: "";
+	position: absolute;
+	top: 50%; /* Vertically centered */
+	width: 0;
+	height: 0;
+	border-style: solid;
+	transform: translateY(-50%); /* Center the arrow vertically */
+	display: none; /* Hide arrow by default, show via modifier class */
+}
+
+/* Arrow pointing Left (when popover is on the RIGHT side of the point) */
+.map-point-popover.popover-right::before {
+	display: block; /* Show the arrow */
+	right: 100%; /* Position arrow at the left edge of the popover */
+	border-width: 8px 8px 8px 0; /* Triangle shape */
+	border-color: transparent #fff transparent transparent; /* Make it white */
+	filter: drop-shadow(-1px 0px 0px rgba(0, 0, 0, 0.05)); /* Subtle shadow for border effect */
+}
+
+/* Arrow pointing Right (when popover is on the LEFT side of the point) */
+.map-point-popover.popover-left::before {
+	display: block; /* Show the arrow */
+	left: 100%; /* Position arrow at the right edge of the popover */
+	border-width: 8px 0 8px 8px; /* Triangle shape */
+	border-color: transparent transparent transparent #fff; /* Make it white */
+	filter: drop-shadow(1px 0px 0px rgba(0, 0, 0, 0.05)); /* Subtle shadow for border effect */
+}
+
+
+.map-point-popover .popover-title {
+	font-weight: 600; /* semibold */
+	color: #1f2937; /* gray-800 */
+	margin-bottom: 0.5rem; /* mb-2 */
+	font-size: 1rem; /* text-base */
+}
+
+.map-point-popover .popover-detail {
+	color: #4b5563; /* gray-600 */
+	margin-bottom: 0.25rem; /* mb-1 */
+}
+
+.map-point-popover .popover-detail span {
+	font-weight: 500; /* medium */
+	color: #111827; /* gray-900 */
+}
+
+.map-point-popover .popover-link {
+	display: block;
+	margin-top: 0.5rem; /* mt-2 */
+	color: #3b82f6; /* blue-500 */
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.map-point-popover .popover-link:hover {
+	color: #2563eb; /* blue-600 */
+	text-decoration: underline;
+}
+
+.map-point-popover .popover-updated-badge {
+	position: absolute;
+	top: 8px; /* Position slightly outside the popover */
+	right: 7px;
+	background-color: #fbbf24; /* amber-400 */
+	color: #78350f; /* amber-900 */
+	font-size: 0.6rem; /* Smaller than card badge */
+	line-height: 1;
+	font-weight: 600;
+	padding: 2px 5px;
+	border-radius: 9999px;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }

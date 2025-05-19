@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartment Location Mapper (V7 - Delete Points)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        /* Styles remain largely the same */
+        .map-container {
+            position: relative; width: 100%; max-width: 800px; margin: auto;
+            border: 1px solid #ccc; overflow: hidden; user-select: none;
+        }
+        .map-container img { display: block; width: 100%; height: auto; pointer-events: none; }
+        .hotspot {
+            position: absolute; border-radius: 50%; width: 12px; height: 12px;
+            border: 2px solid rgba(255, 0, 0, 0.7); background-color: rgba(255, 255, 0, 0.4);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0; color: transparent; box-sizing: border-box; touch-action: none;
+        }
+        .hotspot:hover:not(.editing) {
+            background-color: rgba(0, 255, 255, 0.6); border-color: rgba(0, 255, 255, 1);
+            transform: scale(1.3); z-index: 6;
+        }
+        .hotspot.occupied { background-color: rgba(0, 0, 255, 0.6); border: 2px solid rgba(0, 0, 255, 0.9); }
+        .hotspot.selected:not(.editing) { border: 3px solid #ff00ff; background-color: rgba(255, 0, 255, 0.5); transform: scale(1.4); z-index: 7; }
+        .hotspot.editing {
+            cursor: move; border: 2px solid #00dd00; background-color: rgba(0, 255, 0, 0.2); z-index: 5;
+        }
+         .hotspot.editing.occupied { background-color: rgba(0, 100, 255, 0.5); border: 2px solid #00ccff; }
+        .hotspot.editing:hover { background-color: rgba(0, 255, 0, 0.6); transform: scale(1.3); }
+        .hotspot.interact-dragging { z-index: 10; opacity: 0.8; transform: scale(1.1); }
+
+        /* Edit Mode Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 20; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); padding-top: 60px; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 0.5rem; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        #modal-current-value ul { list-style: disc; margin-left: 20px; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+    <div class="container mx-auto max-w-4xl bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-center text-gray-700">Apartment Location Mapper (V7 - Delete Points)</h1>
+        <p class="text-sm text-center text-gray-600 mb-4">
+            Use 'Edit Layout' mode to drag points, add new ones, or <kbd>Alt</kbd>+Click to delete a single point. Turn off 'Edit Layout' to assign apartment numbers (Press Enter in input box to assign).
+        </p>
+        <p class="text-sm text-center text-red-600 mb-4">**Important:** Ensure 'static/apartment.png' exists relative to this file. Layout is saved automatically.</p>
+
+        <div class="controls flex flex-wrap justify-center gap-4 mb-6 items-center">
+            <div>
+                <label for="building-select" class="block text-sm font-medium text-gray-700 mb-1">Select Building:</label>
+                <select id="building-select" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </select>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                 <span class="text-sm font-medium text-gray-700">Edit Layout:</span>
+                 <label class="switch">
+                    <input type="checkbox" id="edit-mode-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div id="edit-mode-buttons" class="flex gap-2" style="display: none;">
+                 <button id="add-hotspot-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md shadow">
+                    + Add Point
+                </button>
+                <button id="delete-all-button" class="bg-red-600 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-md shadow">
+                    Delete All Points
+                </button>
+            </div>
+
+
+             <div class="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0 self-end">
+                <button id="save-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow">
+                    Save All Data
+                </button>
+                 <label for="load-file-input" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow cursor-pointer text-center">
+                    Load All Data
+                </label>
+                <input type="file" id="load-file-input" accept=".json" class="hidden">
+            </div>
+        </div>
+
+        <div id="status-message" class="text-center text-green-600 font-medium my-2 h-6"></div>
+
+        <div id="map-container" class="map-container">
+             <img id="map-image" src="static/apartment.png" alt="Apartment Complex Map" onerror="this.alt='Error loading map image. Check path (static/apartment.png) and network.'; this.style.display='none'; document.getElementById('map-error').style.display='block';">
+             <div id="map-error" class="text-red-600 text-center p-4" style="display: none;">Error: Could not load map image.</div>
+            </div>
+
+    </div>
+
+    <div id="input-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title" class="text-lg font-medium mb-4">Assign Apartment</h3>
+            <p id="modal-cell-info" class="text-sm text-gray-600 mb-2"></p>
+            <div id="modal-current-value" class="mb-4 text-sm"></div> <input type="text" id="apartment-input" placeholder="Enter Apt # (e.g., #165-101)" class="w-full p-2 border border-gray-300 rounded-md mb-4">
+            <p class="text-xs text-gray-500 mb-4 -mt-2">Assigning one floor automatically assigns all three (e.g., 1xx, 2xx, 3xx). Press Enter to Assign.</p>
+            <div class="flex justify-end gap-2">
+                 <button id="clear-button" onclick="clearApartment()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md shadow">
+                    Clear Point
+                </button>
+                <button id="save-modal-button" onclick="saveApartmentInput()" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow">
+                    Assign
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Configuration ---
+        const buildingNumbers = [165, 167, 169, 171, 173, 175, 179, 181, 183];
+        const initialHotspots = 0; // Start with 0, let user add all points
+        const layoutLocalStorageKey = 'apartmentLayoutCoords_v5'; // Keep keys consistent
+        const assignmentLocalStorageKey = 'apartmentLayoutAssignments_v5';
+        const defaultFileName = 'apartment_points_layout_v5.json';
+        const mapImageSrc = 'static/apartment.png';
+        const defaultHotspotWidthPercent = 1.5;
+        const defaultHotspotHeightPercent = defaultHotspotWidthPercent;
+
+        // --- DOM Elements ---
+        const buildingSelect = document.getElementById('building-select');
+        const mapContainer = document.getElementById('map-container');
+        const mapImage = document.getElementById('map-image');
+        const statusMessage = document.getElementById('status-message');
+        const saveButton = document.getElementById('save-button');
+        const loadFileInput = document.getElementById('load-file-input');
+        const modal = document.getElementById('input-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalCellInfo = document.getElementById('modal-cell-info');
+        const modalCurrentValue = document.getElementById('modal-current-value');
+        const apartmentInput = document.getElementById('apartment-input');
+        const clearButton = document.getElementById('clear-button');
+        const editModeToggle = document.getElementById('edit-mode-toggle');
+        const addHotspotButton = document.getElementById('add-hotspot-button');
+        const deleteAllButton = document.getElementById('delete-all-button'); // New button
+        const editModeButtonsContainer = document.getElementById('edit-mode-buttons'); // Container for edit buttons
+
+
+        // --- State ---
+        let currentBuilding = buildingNumbers[0];
+        let apartmentData = {};
+        let hotspotLayoutData = {};
+        let nextHotspotIndex = 0; // Will be determined by loaded data or start at 0
+        let selectedSlotIndex = null;
+        let imageNaturalWidth = 0;
+        let imageNaturalHeight = 0;
+        let isEditMode = false;
+
+        // --- Initialization ---
+        function initialize() {
+            console.log("Initializing Interactive Mapper V7 (Delete Points)...");
+            populateBuildingSelector();
+            loadLayoutDataFromLocalStorage();
+            loadAssignmentDataFromLocalStorage();
+
+            // Determine next index based on MAX existing index + 1, or 0 if empty
+            const layoutIndices = Object.keys(hotspotLayoutData).map(Number);
+            nextHotspotIndex = layoutIndices.length > 0 ? Math.max(-1, ...layoutIndices) + 1 : 0; // Start at 0 if empty
+            console.log(`Initial nextHotspotIndex set to: ${nextHotspotIndex}`);
+
+            if (mapImage.complete && mapImage.naturalWidth > 0) {
+                 handleImageLoad();
+            } else {
+                mapImage.onload = handleImageLoad;
+                mapImage.onerror = handleImageError;
+            }
+            console.log("Initialization sequence started.");
+        }
+
+        function handleImageLoad() { /* Unchanged */
+             console.log("Map image loaded.");
+             imageNaturalWidth = mapImage.naturalWidth; imageNaturalHeight = mapImage.naturalHeight;
+             console.log(`Image dimensions: ${imageNaturalWidth}x${imageNaturalHeight}`);
+             if(imageNaturalWidth <= 0 || imageNaturalHeight <= 0) { handleImageError(); return; }
+             setupEventListeners(); createOrUpdateHotspots(); updateEditModeState(editModeToggle.checked);
+             console.log("Initialization complete after image load.");
+        }
+
+        function handleImageError() { /* Unchanged */
+            console.error("Failed to load map image:", mapImageSrc);
+            showStatus(`Error loading map image: ${mapImageSrc}. Check path relative to HTML file.`, true, 10000);
+            document.getElementById('map-error').style.display = 'block'; mapImage.style.display = 'none';
+        }
+
+        function populateBuildingSelector() { /* Unchanged */
+            buildingNumbers.forEach(num => { const option = document.createElement('option'); option.value = num; option.textContent = `Building ${num}`; buildingSelect.appendChild(option); });
+            buildingSelect.value = currentBuilding;
+        }
+
+        function setupEventListeners() { /* Added listener for delete all */
+            buildingSelect.addEventListener('change', (event) => { currentBuilding = parseInt(event.target.value, 10); createOrUpdateHotspots(); });
+            mapContainer.addEventListener('click', handleHotspotClick); // Handles both assignment and delete clicks
+            saveButton.addEventListener('click', saveDataToFile);
+            loadFileInput.addEventListener('change', handleFileLoad);
+            editModeToggle.addEventListener('change', (event) => updateEditModeState(event.target.checked));
+            addHotspotButton.addEventListener('click', addNewHotspot);
+            deleteAllButton.addEventListener('click', deleteAllPoints); // Listener for Delete All
+            window.addEventListener('click', (event) => { if (event.target == modal) closeModal(); });
+            window.addEventListener('resize', debounce(createOrUpdateHotspots, 150));
+            apartmentInput.addEventListener('keydown', (event) => { if (modal.style.display === 'block' && event.key === 'Enter') { event.preventDefault(); saveApartmentInput(); } });
+             console.log("Event listeners set up.");
+        }
+
+        // --- Edit Mode ---
+        function updateEditModeState(isEditing) {
+             isEditMode = isEditing;
+             console.log("Edit Mode:", isEditMode);
+             // Show/hide the container for edit mode buttons
+             editModeButtonsContainer.style.display = isEditMode ? 'flex' : 'none';
+
+             mapContainer.querySelectorAll('.hotspot').forEach(hotspot => {
+                 updateHotspotInteractability(hotspot);
+                 if (isEditMode) { hotspot.classList.add('editing'); }
+                 else { hotspot.classList.remove('editing', 'selected'); }
+             });
+             showStatus(`Layout Edit Mode ${isEditMode ? 'Enabled' : 'Disabled'}`, false, 1500);
+        }
+
+        function updateHotspotInteractability(hotspotElement) { /* Unchanged */
+            const interactable = interact(hotspotElement); if (!interactable) { return; }
+             if (isEditMode) { interactable.draggable(true); if (interactable.options.resize && interactable.options.resize.enabled) { interactable.resizable(false); } hotspotElement.style.cursor = 'move'; }
+             else { interactable.draggable(false); if (interactable.options.resize && interactable.options.resize.enabled) { interactable.resizable(false); } hotspotElement.style.cursor = 'pointer'; }
+        }
+
+
+        // --- Data Handling ---
+        function getHotspotLayout(pointIndex) { /* Unchanged */ return hotspotLayoutData[pointIndex] || [50, 50, defaultHotspotWidthPercent, defaultHotspotHeightPercent]; }
+        function setHotspotLayout(pointIndex, layoutArray) { /* Unchanged */ if (Array.isArray(layoutArray) && layoutArray.length === 4) { hotspotLayoutData[pointIndex] = layoutArray; saveLayoutDataToLocalStorage(); } else { console.error("Invalid layout data for point", pointIndex, ":", layoutArray); } }
+        function saveLayoutDataToLocalStorage() { /* Unchanged */ try { localStorage.setItem(layoutLocalStorageKey, JSON.stringify(hotspotLayoutData)); } catch (error) { console.error("Error saving layout data:", error); showStatus("Error saving layout data locally.", true); } }
+        function loadLayoutDataFromLocalStorage() { /* Unchanged */ try { const storedData = localStorage.getItem(layoutLocalStorageKey); hotspotLayoutData = storedData ? JSON.parse(storedData) : {}; console.log("Layout data loaded."); } catch (error) { console.error("Error loading layout data:", error); hotspotLayoutData = {}; showStatus("Error loading layout data. Using defaults.", true); } }
+        function getApartmentNames(building, pointIndex) { /* Unchanged */ return apartmentData[building]?.[pointIndex] || null; }
+        function setApartmentNames(building, pointIndex, singleAptName) { /* Unchanged */ if (!apartmentData[building]) apartmentData[building] = {}; const trimmedName = singleAptName ? singleAptName.trim() : null; if (!trimmedName) { if (apartmentData[building]?.[pointIndex]) { delete apartmentData[building][pointIndex]; console.log(`Cleared assignment B:${building}, Point:${pointIndex}`); } if (Object.keys(apartmentData[building]).length === 0) { delete apartmentData[building]; } saveAssignmentDataToLocalStorage(); return true; } const match = trimmedName.match(/^#(\d+)-(\d+)$/); if (!match) { showStatus("Invalid format. Use #Building-Unit (e.g., #165-101).", true); return false; } const aptBuilding = parseInt(match[1], 10); const unitNumberStr = match[2]; if (aptBuilding !== building) { showStatus(`Building mismatch! Input for building ${aptBuilding}, but selected building is ${building}.`, true); return false; } let unitSuffix = unitNumberStr.length <= 2 ? unitNumberStr : unitNumberStr.slice(-2); unitSuffix = unitSuffix.padStart(2, '0'); const floorNames = [`#${aptBuilding}-1${unitSuffix}`, `#${aptBuilding}-2${unitSuffix}`, `#${aptBuilding}-3${unitSuffix}`]; apartmentData[building][pointIndex] = floorNames; console.log(`Set assignment B:${building}, Point:${pointIndex} to ${JSON.stringify(floorNames)}`); saveAssignmentDataToLocalStorage(); return true; }
+        function saveAssignmentDataToLocalStorage() { /* Unchanged */ try { localStorage.setItem(assignmentLocalStorageKey, JSON.stringify(apartmentData)); } catch (error) { console.error("Error saving assignment data:", error); showStatus("Error saving assignment data locally.", true); } }
+        function loadAssignmentDataFromLocalStorage() { /* Unchanged */ try { const storedData = localStorage.getItem(assignmentLocalStorageKey); apartmentData = storedData ? JSON.parse(storedData) : {}; console.log("Assignment data loaded."); } catch (error) { console.error("Error loading assignment data:", error); apartmentData = {}; showStatus("Error loading assignment data.", true); } }
+        function saveDataToFile() { /* Unchanged */ try { const combinedData = { layout: hotspotLayoutData, assignments: apartmentData }; const jsonData = JSON.stringify(combinedData, null, 2); const blob = new Blob([jsonData], { type: 'application/json;charset=utf-8' }); saveAs(blob, defaultFileName); showStatus(`Layout & Assignments saved to ${defaultFileName}`, false, 3000); } catch (error) { console.error("Error saving combined data:", error); showStatus("Error saving data to file.", true); } }
+        function handleFileLoad(event) { /* Unchanged */ const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const loadedData = JSON.parse(e.target.result); if (typeof loadedData === 'object' && loadedData !== null && 'layout' in loadedData && 'assignments' in loadedData) { hotspotLayoutData = loadedData.layout || {}; apartmentData = loadedData.assignments || {}; const layoutIndices = Object.keys(hotspotLayoutData).map(Number); nextHotspotIndex = layoutIndices.length > 0 ? Math.max(-1, ...layoutIndices) + 1 : 0; console.log(`nextHotspotIndex updated to: ${nextHotspotIndex} after load.`); saveLayoutDataToLocalStorage(); saveAssignmentDataToLocalStorage(); createOrUpdateHotspots(); showStatus(`Data loaded from ${file.name}`, false, 3000); } else { throw new Error("Invalid JSON structure."); } } catch (error) { console.error("Error parsing loaded file:", error); showStatus(`Error loading file: ${error.message}`, true); } finally { loadFileInput.value = ''; } }; reader.onerror = (e) => { console.error("Error reading file:", e); showStatus("Error reading the selected file.", true); loadFileInput.value = ''; }; reader.readAsText(file); }
+
+
+        // --- UI Rendering & Interaction ---
+        function debounce(func, wait) { /* Unchanged */ let timeout; return function executedFunction(...args) { const later = () => { clearTimeout(timeout); func(...args); }; clearTimeout(timeout); timeout = setTimeout(later, wait); }; };
+
+        function createOrUpdateHotspots() {
+            if (imageNaturalWidth <= 0 || imageNaturalHeight <= 0) return;
+            console.log(`Rendering/Updating hotspots up to index ${nextHotspotIndex - 1}`);
+            const currentImageWidth = mapImage.offsetWidth;
+            const currentImageHeight = mapImage.offsetHeight;
+            if (currentImageWidth <= 0 || currentImageHeight <= 0) return;
+
+            const existingHotspotElements = mapContainer.querySelectorAll('.hotspot');
+            const renderedIndices = new Set();
+
+            // Ensure all necessary hotspots exist and are updated
+            for (let i = 0; i < nextHotspotIndex; i++) {
+                 // Only render if layout data exists for this index (handles gaps from deletion)
+                 if (hotspotLayoutData[i]) {
+                     renderedIndices.add(i);
+                     let hotspot = mapContainer.querySelector(`.hotspot[data-slot-index="${i}"]`);
+                     if (!hotspot) {
+                         hotspot = document.createElement('div'); hotspot.classList.add('hotspot'); hotspot.dataset.slotIndex = i; hotspot.dataset.interactInitialized = 'false'; mapContainer.appendChild(hotspot); initializeInteract(hotspot); console.log(`Created and initialized hotspot index ${i}`);
+                     }
+
+                     const layout = getHotspotLayout(i);
+                     const [xPercent, yPercent, wPercent, hPercent] = layout;
+                     const widthPx = (wPercent / 100) * currentImageWidth; const heightPx = (hPercent / 100) * currentImageHeight; const leftPx = ((xPercent / 100) * currentImageWidth) - (widthPx / 2); const topPx = ((yPercent / 100) * currentImageHeight) - (heightPx / 2);
+                     hotspot.style.left = `${leftPx}px`; hotspot.style.top = `${topPx}px`;
+
+                     const aptNamesArray = getApartmentNames(currentBuilding, i);
+                     hotspot.textContent = '';
+                     if (aptNamesArray && aptNamesArray.length > 0) { hotspot.classList.add('occupied'); hotspot.title = `Point ${i + 1}: ${aptNamesArray.join(', ')}`; }
+                     else { hotspot.classList.remove('occupied'); hotspot.title = `Point ${i + 1}: Empty`; }
+
+                     if (isEditMode) { hotspot.classList.add('editing'); } else { hotspot.classList.remove('editing'); }
+                     updateHotspotInteractability(hotspot);
+                 }
+            }
+
+            // Remove hotspot elements that no longer have layout data
+             existingHotspotElements.forEach(el => {
+                 const index = parseInt(el.dataset.slotIndex, 10);
+                 if (!hotspotLayoutData[index]) { // Check if layout data exists
+                     console.log(`Removing hotspot element for deleted index ${index}`);
+                     const interactable = interact(el); if (interactable) { try { interactable.unset(); } catch(e) {} }
+                     el.remove();
+                 }
+             });
+            console.log("Hotspots rendered/updated.");
+        }
+
+        function addNewHotspot() { /* Unchanged */
+            if (!isEditMode) return; const newIndex = nextHotspotIndex++; console.log(`Adding new hotspot with index ${newIndex}`);
+            setHotspotLayout(newIndex, [50, 50, defaultHotspotWidthPercent, defaultHotspotHeightPercent]); createOrUpdateHotspots();
+            showStatus(`Added new point ${newIndex + 1}. Drag to position.`, false, 3000);
+        }
+
+        // --- Delete Functions ---
+        function deleteAllPoints() {
+            if (!isEditMode) return; // Only allow in edit mode
+
+            if (window.confirm("Are you sure you want to delete ALL points and their assignments? This cannot be undone.")) {
+                console.log("Deleting all points...");
+                // Clear data
+                hotspotLayoutData = {};
+                apartmentData = {};
+                nextHotspotIndex = 0; // Reset index counter
+
+                // Save cleared data
+                saveLayoutDataToLocalStorage();
+                saveAssignmentDataToLocalStorage();
+
+                // Remove elements from DOM
+                mapContainer.querySelectorAll('.hotspot').forEach(el => {
+                     const interactable = interact(el); if (interactable) { try { interactable.unset(); } catch(e) {} }
+                     el.remove();
+                });
+
+                showStatus("All points deleted.", false, 3000);
+            }
+        }
+
+        function deleteSinglePoint(pointIndex) {
+            if (!isEditMode) return; // Should only be triggered in edit mode
+
+            console.log(`Attempting to delete point index ${pointIndex}`);
+            // Confirm deletion
+            const apts = getApartmentNames(currentBuilding, pointIndex);
+            const confirmMsg = `Delete Point ${pointIndex + 1}?` + (apts ? `\n(Currently assigned: ${apts.join(', ')})` : '');
+
+            if (window.confirm(confirmMsg)) {
+                // Remove layout data
+                delete hotspotLayoutData[pointIndex];
+                saveLayoutDataToLocalStorage();
+
+                // Remove assignment data for this point across ALL buildings
+                Object.keys(apartmentData).forEach(buildingKey => {
+                    if (apartmentData[buildingKey]?.[pointIndex]) {
+                        delete apartmentData[buildingKey][pointIndex];
+                        // Clean up building entry if it becomes empty
+                        if (Object.keys(apartmentData[buildingKey]).length === 0) {
+                             delete apartmentData[buildingKey];
+                        }
+                    }
+                });
+                saveAssignmentDataToLocalStorage();
+
+                // Remove the element from the DOM
+                const hotspotElement = mapContainer.querySelector(`.hotspot[data-slot-index="${pointIndex}"]`);
+                if (hotspotElement) {
+                     const interactable = interact(hotspotElement); if (interactable) { try { interactable.unset(); } catch(e) {} }
+                     hotspotElement.remove();
+                     console.log(`Removed hotspot element for index ${pointIndex}`);
+                } else {
+                    console.warn(`Could not find hotspot element for index ${pointIndex} to remove.`);
+                }
+                // Note: We don't decrement nextHotspotIndex or re-index. Gaps are allowed.
+                showStatus(`Deleted Point ${pointIndex + 1}.`, false, 2000);
+            }
+        }
+
+
+         function handleHotspotClick(event) {
+             const hotspot = event.target.closest('.hotspot');
+             if (!hotspot) return;
+
+             const pointIndex = parseInt(hotspot.dataset.slotIndex, 10);
+
+             if (isEditMode) {
+                 // Check if Alt key is pressed for deletion
+                 if (event.altKey) {
+                     console.log(`Alt+Click detected on point ${pointIndex}`);
+                     deleteSinglePoint(pointIndex);
+                 } else {
+                     console.log("Clicked hotspot in edit mode (point", pointIndex, ")");
+                     // Allow drag/move, maybe select later if needed
+                 }
+                 return; // Prevent modal in edit mode
+             }
+
+             // --- Assignment Mode Logic ---
+             document.querySelectorAll('.hotspot.selected').forEach(el => el.classList.remove('selected'));
+             hotspot.classList.add('selected');
+             selectedSlotIndex = pointIndex; // Use the already parsed index
+             console.log(`Hotspot clicked for assignment: B:${currentBuilding}, Point:${selectedSlotIndex}`);
+             openModal();
+         }
+
+        function initializeInteract(targetElement) { /* Unchanged */
+            if (targetElement.dataset.interactInitialized === 'true') { updateHotspotInteractability(targetElement); return; }
+            console.log("Initializing interact.js (Drag Only) for:", targetElement);
+            interact(targetElement) .draggable({ inertia: false, modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })], autoScroll: true, listeners: { move: handleDragMove, end: handleDragEnd }, enabled: isEditMode });
+            targetElement.dataset.interactInitialized = 'true'; updateHotspotInteractability(targetElement);
+        }
+
+        // --- Drag Handlers --- (Unchanged from V5)
+        function handleDragMove(event) { const target = event.target; const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx; const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy; target.style.transform = `translate(${x}px, ${y}px)`; target.setAttribute('data-x', x); target.setAttribute('data-y', y); }
+        function handleDragEnd(event) { const target = event.target; const currentX = target.offsetLeft + (parseFloat(target.getAttribute('data-x')) || 0); const currentY = target.offsetTop + (parseFloat(target.getAttribute('data-y')) || 0); target.style.transform = 'translate(0px, 0px)'; target.setAttribute('data-x', 0); target.setAttribute('data-y', 0); target.style.left = `${currentX}px`; target.style.top = `${currentY}px`; updateAndSaveLayoutFromPixels(target); console.log("Drag ended, saved layout for point", target.dataset.slotIndex); }
+
+        // --- Layout Saving Helper --- (Unchanged from V5)
+        function updateAndSaveLayoutFromPixels(targetElement) { const slotIndex = parseInt(targetElement.dataset.slotIndex, 10); if (isNaN(slotIndex)) return; const containerWidth = mapContainer.offsetWidth; const containerHeight = mapContainer.offsetHeight; if (containerWidth <= 0 || containerHeight <= 0) return; const centerX = targetElement.offsetLeft + targetElement.offsetWidth / 2; const centerY = targetElement.offsetTop + targetElement.offsetHeight / 2; const xPercent = (centerX / containerWidth) * 100; const yPercent = (centerY / containerHeight) * 100; const existingLayout = getHotspotLayout(slotIndex); const wPercent = existingLayout[2]; const hPercent = existingLayout[3]; console.log(`Saving layout % for point ${slotIndex}: [${xPercent.toFixed(2)}, ${yPercent.toFixed(2)}, ${wPercent.toFixed(2)}, ${hPercent.toFixed(2)}]`); setHotspotLayout(slotIndex, [xPercent, yPercent, wPercent, hPercent]); }
+
+         function showStatus(message, isError = false, duration = 4000) { /* Unchanged */
+            statusMessage.textContent = message; statusMessage.className = `text-center font-medium my-2 h-6 ${isError ? 'text-red-600' : 'text-green-600'}`; setTimeout(() => { if (statusMessage.textContent === message) statusMessage.textContent = ''; }, duration);
+        }
+
+        // --- Modal Logic --- (Unchanged from V5)
+        function openModal() { if (selectedSlotIndex === null || isEditMode) return; const currentAptNames = getApartmentNames(currentBuilding, selectedSlotIndex); modalTitle.textContent = `Assign Apartment to Point ${selectedSlotIndex + 1}`; modalCellInfo.textContent = `Building: ${currentBuilding}`; if (currentAptNames && currentAptNames.length > 0) { let listHtml = 'Currently assigned:<ul>'; currentAptNames.forEach(name => { listHtml += `<li>${name}</li>`; }); listHtml += '</ul>'; modalCurrentValue.innerHTML = listHtml; apartmentInput.value = currentAptNames[0]; clearButton.style.display = 'inline-block'; } else { modalCurrentValue.innerHTML = `Currently: <em class="text-gray-500">Empty</em>`; apartmentInput.value = `#${currentBuilding}-`; clearButton.style.display = 'none'; } modal.style.display = 'block'; apartmentInput.focus(); }
+        function closeModal() { modal.style.display = 'none'; apartmentInput.value = ''; if (selectedSlotIndex !== null) { const hotspot = mapContainer.querySelector(`.hotspot[data-slot-index="${selectedSlotIndex}"]`); if(hotspot) hotspot.classList.remove('selected'); } selectedSlotIndex = null; }
+        function saveApartmentInput() { if (selectedSlotIndex === null) return; const singleAptName = apartmentInput.value; const success = setApartmentNames(currentBuilding, selectedSlotIndex, singleAptName); if (success) { const hotspot = mapContainer.querySelector(`.hotspot[data-slot-index="${selectedSlotIndex}"]`); if(hotspot) { const updatedNames = getApartmentNames(currentBuilding, selectedSlotIndex); if (updatedNames) { hotspot.classList.add('occupied'); hotspot.title = `Point ${selectedSlotIndex + 1}: ${updatedNames.join(', ')}`; } else { hotspot.classList.remove('occupied'); hotspot.title = `Point ${selectedSlotIndex + 1}: Empty`; } } closeModal(); showStatus(`Point ${selectedSlotIndex + 1} updated (all floors).`, false, 2500); } }
+        function clearApartment() { if (selectedSlotIndex === null) return; const success = setApartmentNames(currentBuilding, selectedSlotIndex, null); if (success) { const hotspot = mapContainer.querySelector(`.hotspot[data-slot-index="${selectedSlotIndex}"]`); if(hotspot) { hotspot.classList.remove('occupied'); hotspot.title = `Point ${selectedSlotIndex + 1}: Empty`; } closeModal(); showStatus(`Point ${selectedSlotIndex + 1} cleared.`, false, 2000); } else { showStatus("Failed to clear point.", true); } }
+
+        // --- Start the application ---
+        document.addEventListener('DOMContentLoaded', initialize);
+
+    </script>
+
+</body>
+</html>

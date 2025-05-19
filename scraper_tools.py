@@ -23,7 +23,6 @@ from pyvirtualdisplay import Display
 
 from element_find import FindElement
 from element_wait_until import WaitUntilElement
-from settings import HEADLESS
 
 
 def goto_homepage(function: Callable) -> Callable:
@@ -95,6 +94,8 @@ class ScraperTools(WaitUntilElement, FindElement):
 
 	def close(self):
 		self.driver.close()
+		self.driver.quit()
+		# print("Closed driver.")
 
 	def refresh(self):
 		self.driver.refresh()
