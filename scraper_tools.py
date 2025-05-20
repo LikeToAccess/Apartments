@@ -96,7 +96,7 @@ class ScraperTools(WaitUntilElement, FindElement):
 	def close(self):
 		self.driver.close()
 		self.driver.quit()
-		self.display.stop()
+		# self.display.stop()
 		# print("Closed driver.")
 
 	def refresh(self):
