@@ -59,6 +59,7 @@ class ScraperTools(WaitUntilElement, FindElement):
 		# 	# options.add_argument("--disable-gpu")
 		# 	options.add_argument("--mute-audio")
 		self.driver = uc.Chrome(options=options)
+		self.display = display
 		super().__init__(self.driver)
 		toc = perf_counter()
 		print(f"Completed init in {toc-tic:.2f}s.")
@@ -95,6 +96,7 @@ class ScraperTools(WaitUntilElement, FindElement):
 	def close(self):
 		self.driver.close()
 		self.driver.quit()
+		self.display.stop()
 		# print("Closed driver.")
 
 	def refresh(self):
