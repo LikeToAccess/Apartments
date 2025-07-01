@@ -58,8 +58,8 @@ class Scraper(ScraperTools):
 		for result in results:
 			result = result.get_attribute("outerHTML")
 			name = find_elements_by_xpath(result, ".//td[@class='td-card-name']/text()")[-1].strip()
-			price = find_elements_by_xpath(result, ".//td[@class='td-card-rent']/text()")[0]
-			price = int(price.replace("$", "").replace(",", ""))
+			price = find_elements_by_xpath(result, ".//td[@class='td-card-rent']/text()")[-2].strip()
+			price = int(price.replace("$", "").replace(",", "")) if price else 0
 			page_url = find_elements_by_xpath(result, ".//td[@class='td-card-footer']/a/@href")[0].strip()
 			details = find_elements_by_xpath(result, ".//td[@class='td-card-details']/ul/li/text()")
 			details = [detail.strip("- ") for detail in details]
