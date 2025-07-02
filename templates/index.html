@@ -9,80 +9,66 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    </head>
+</head>
 <body class="bg-gray-100 p-4 md:p-8">
 
     <div class="container mx-auto max-w-7xl bg-white rounded-lg shadow-lg p-5">
         <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">Apartment Availability</h1>
 
         <div class="text-center mb-6 flex flex-wrap justify-center items-center gap-4">
-            <button id="update-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                Check for Updates
-            </button>
-            <button id="toggle-map-button" class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50">
-                Show Map
-            </button>
+            <button id="update-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">Check for Updates</button>
+            <button id="toggle-map-button" class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition">Show Map</button>
             <span id="update-status" class="text-gray-600 w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0"></span>
         </div>
-
         <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-start">
                 <div class="xl:col-span-2">
                     <label for="filter-building" class="block text-sm font-medium text-gray-700 mb-1">Filter by Building</label>
-                    <select id="filter-building" name="filter-building" multiple size="4" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                        <title>Hold Ctrl/Cmd to select multiple</title>
-                        </select>
+                    <select id="filter-building" name="filter-building" multiple size="4" class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></select>
                      <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple.</p>
                 </div>
                 <div>
                     <label for="filter-floor" class="block text-sm font-medium text-gray-700 mb-1">Filter by Floor</label>
-                    <select id="filter-floor" name="filter-floor" multiple size="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                        <option value="all">All Floors</option>
-                        </select>
+                    <select id="filter-floor" name="filter-floor" multiple size="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></select>
                 </div>
                 <div>
                     <label for="filter-style" class="block text-sm font-medium text-gray-700 mb-1">Filter by Style</label>
-                    <select id="filter-style" name="filter-style" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                        <option value="all">All Styles</option>
-                        </select>
+                    <select id="filter-style" name="filter-style" class="w-full p-2 border border-gray-300 rounded-md shadow-sm"><option value="all">All Styles</option></select>
                 </div>
                 <div>
                     <label for="sort-by" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                    <select id="sort-by" name="sort-by" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                        <option value="name-asc">Name (A-Z)</option>
-                        <option value="name-desc">Name (Z-A)</option>
-                        <option value="price-asc">Price (Low to High)</option>
-                        <option value="price-desc">Price (High to Low)</option>
-                        <option value="floor-asc">Floor (Low to High)</option>
-                        <option value="floor-desc">Floor (High to Low)</option>
-                        <option value="updated-desc">Updated (Newest)</option>
-                        <option value="updated-asc">Updated (Oldest)</option>
-                        <option value="location_point_index-asc">Location (Low to High)</option> <option value="location_point_index-desc">Location (High to Low)</option> </select>
+                    <select id="sort-by" name="sort-by" class="w-full p-2 border border-gray-300 rounded-md shadow-sm"><option value="name-asc">Name (A-Z)</option><option value="name-desc">Name (Z-A)</option><option value="price-asc">Price (Low to High)</option><option value="price-desc">Price (High to Low)</option><option value="floor-asc">Floor (Low to High)</option><option value="floor-desc">Floor (High to Low)</option><option value="updated-desc">Updated (Newest)</option><option value="updated-asc">Updated (Oldest)</option></select>
                 </div>
                  <div class="flex items-center pt-7">
-                     <input id="filter-updated" name="filter-updated" type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                     <input id="filter-updated" name="filter-updated" type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600 rounded">
                      <label for="filter-updated" class="ml-2 block text-sm font-medium text-gray-700">Show Updated Only</label>
                  </div>
                  <div class="self-end xl:col-start-6">
-                    <button id="reset-filters" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
-                        Reset Filters
-                    </button>
+                    <button id="reset-filters" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">Reset Filters</button>
                 </div>
             </div>
         </div>
 
-         <div id="loading" class="text-center text-gray-500 py-4">Loading apartment data...</div>
-
-         <div id="map-display-container" class="mb-6 border border-gray-300 rounded-lg overflow-hidden" style="display: none;">
-             </div>
+        <div id="loading" class="text-center text-gray-500 py-4">Loading apartment data...</div>
+        <div id="map-display-container" class="mb-6 border border-gray-300 rounded-lg overflow-hidden" style="display: none;"></div>
 
         <div id="apartment-list" class="mt-6">
             <p id="results-count" class="text-sm text-gray-600 mb-4"></p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                </div>
-             <p id="no-results" class="text-center text-gray-500 py-6 hidden">No apartments match the current filters.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+            <p id="no-results" class="text-center text-gray-500 py-6 hidden">No apartments match the current filters.</p>
         </div>
 
+        <div id="deleted-apartments-section" class="mt-10 border-t pt-6" style="display: none;">
+            <h2 id="deleted-apartments-toggle" class="text-xl font-bold text-gray-700 mb-4 cursor-pointer hover:text-gray-900 flex items-center">
+                Previously Available Listings
+                <svg class="w-5 h-5 ml-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </h2>
+            <div id="deleted-apartment-list-container" class="hidden">
+                <p id="deleted-results-count" class="text-sm text-gray-500 mb-4"></p>
+                <div id="deleted-apartment-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                <p id="no-deleted-results" class="text-center text-gray-500 py-6 hidden">No previously available listings found.</p>
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
