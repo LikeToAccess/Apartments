@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateStatus = document.getElementById('update-status');
     const filterBuildingSelect = document.getElementById('filter-building');
     const filterFloorSelect = document.getElementById('filter-floor');
+    const filterFloorPlanSelect = document.getElementById('filter-floor-plan');
     const filterStyleSelect = document.getElementById('filter-style');
     const filterUpdatedCheckbox = document.getElementById('filter-updated');
     const sortBySelect = document.getElementById('sort-by');
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let mapVisible = false;
     let mapImageElement = null;
     let mapImageNaturalWidth = 0;
-    let currentFilters = { buildings: [], floors: [], style: 'all', updatedOnly: false };
+    let currentFilters = { buildings: [], floors: [], floorPlans: [], style: 'all', updatedOnly: false };
     let currentSort = 'name-asc';
     let mapPointPopover = null;
     let pinnedApartmentForPopover = null;
@@ -43,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function createMapPopover() { if (!mapDisplayContainer) return; mapPointPopover = document.createElement('div'); mapPointPopover.className = 'map-point-popover'; mapPointPopover.style.display = 'none'; mapDisplayContainer.appendChild(mapPointPopover); }
     function updatePopoverContent(apartment) {
 		if (!mapPointPopover || !apartment) return;
-        // MODIFIED: Restored correct badge logic
 		const isUpdated = apartment.created_at && apartment.updated_at && (apartment.updated_at > apartment.created_at);
 		const updatedBadgeHtml = isUpdated && !apartment.deleted_at ? '<span class="popover-updated-badge">Updated</span>' : '';
 		const isDeleted = !!apartment.deleted_at;
@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		mapPointPopover.innerHTML = `
             ${updatedBadgeHtml}
             <h4 class="${titleClass}">${apartment.name || 'N/A'}</h4>
+            <p class="popover-detail">Floor Plan: <span>${apartment.floor_plan || 'N/A'}</span></p>
             <p class="popover-detail">Price: <span style="${priceStyle}">$${apartment.price?.toLocaleString() ?? 'N/A'}</span></p>
             <p class="popover-detail">Floor: <span>${apartment.floor || 'N/A'}</span></p>
             <p class="popover-detail">Style: <span>${apartment.style || 'N/A'}</span></p>
@@ -65,15 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Core Rendering & Filtering Functions ---
 	function populateFilters() {
-		const buildings = new Set(), floors = new Set(), styles = new Set();
+		const buildings = new Set(), floors = new Set(), styles = new Set(), floorPlans = new Set();
 		[...allApartments, ...allDeletedApartments].forEach(apt => {
 			if (getBuildingNumber(apt.name)) buildings.add(getBuildingNumber(apt.name));
 			if (apt.floor) floors.add(apt.floor);
 			if (apt.style) styles.add(apt.style);
+            if (apt.floor_plan) floorPlans.add(apt.floor_plan);
 		});
 		if(filterBuildingSelect) { filterBuildingSelect.innerHTML = ''; Array.from(buildings).sort((a,b)=>a-b).forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = `Building ${b}`; filterBuildingSelect.appendChild(opt); }); }
 		if(filterFloorSelect) { filterFloorSelect.innerHTML = ''; Array.from(floors).sort((a, b) => ({"First Floor":1,"Second Floor":2,"Third Floor":3}[a]||99)-({"First Floor":1,"Second Floor":2,"Third Floor":3}[b]||99)).forEach(f => { const opt = document.createElement('option'); opt.value = f; opt.textContent = f; filterFloorSelect.appendChild(opt); }); }
-		if(filterStyleSelect) { filterStyleSelect.innerHTML = '<option value="all">All Styles</option>'; Array.from(styles).sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; filterStyleSelect.appendChild(opt); }); }
+		if(filterFloorPlanSelect) { filterFloorPlanSelect.innerHTML = ''; Array.from(floorPlans).sort().forEach(fp => { const opt = document.createElement('option'); opt.value = fp; opt.textContent = fp; filterFloorPlanSelect.appendChild(opt); }); }
+        if(filterStyleSelect) { filterStyleSelect.innerHTML = '<option value="all">All Styles</option>'; Array.from(styles).sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; filterStyleSelect.appendChild(opt); }); }
 	}
 
     function renderApartmentList(apartmentsToDisplay) {
@@ -96,7 +99,10 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 ${isUpdated ? '<span class="updated-badge">Updated</span>' : ''}
                 <div>
-                    <h3 class="font-semibold text-lg text-gray-800">${apt.name || 'N/A'}</h3>
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-semibold text-lg text-gray-800">${apt.name || 'N/A'}</h3>
+                        <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-medium rounded">${apt.floor_plan || 'N/A'}</span>
+                    </div>
                     <p class="text-gray-700">Price: <span class="font-medium">$${apt.price?.toLocaleString() ?? 'N/A'}</span></p>
                     <p class="text-gray-600 text-sm">Floor: ${apt.floor || 'N/A'}</p>
                     <p class="text-gray-600 text-sm">Style: ${apt.style || 'N/A'}</p>
@@ -125,7 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.className = 'apartment-card deleted-apartment-card';
                 card.innerHTML = `
                     <div>
-                        <h3 class="font-semibold text-lg">${apt.name || 'N/A'}</h3>
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-semibold text-lg">${apt.name || 'N/A'}</h3>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded">${apt.floor_plan || 'N/A'}</span>
+                        </div>
                         <p class="text-gray-700" style="text-decoration: line-through;">Price: $${apt.price?.toLocaleString() ?? 'N/A'}</p>
                         <p class="text-gray-600 text-sm">Floor: ${apt.floor || 'N/A'}</p>
                         <p class="text-gray-600 text-sm">Style: ${apt.style || 'N/A'}</p>
@@ -142,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const buildingNum = getBuildingNumber(apt.name);
             return (currentFilters.buildings.length === 0 || (buildingNum && currentFilters.buildings.includes(buildingNum))) &&
                    (currentFilters.floors.length === 0 || (apt.floor && currentFilters.floors.includes(apt.floor))) &&
+                   (currentFilters.floorPlans.length === 0 || (apt.floor_plan && currentFilters.floorPlans.includes(apt.floor_plan))) &&
                    (currentFilters.style === 'all' || apt.style === currentFilters.style) &&
                    (!currentFilters.updatedOnly || apt.updated_at > apt.created_at);
         });
@@ -149,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const buildingNum = getBuildingNumber(apt.name);
             return (currentFilters.buildings.length === 0 || (buildingNum && currentFilters.buildings.includes(buildingNum))) &&
                    (currentFilters.floors.length === 0 || (apt.floor && currentFilters.floors.includes(apt.floor))) &&
+                   (currentFilters.floorPlans.length === 0 || (apt.floor_plan && currentFilters.floorPlans.includes(apt.floor_plan))) &&
                    (currentFilters.style === 'all' || apt.style === currentFilters.style);
         });
         const [sortKey, sortOrder] = currentSort.split('-');
@@ -242,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if(filterBuildingSelect) filterBuildingSelect.addEventListener('change', (e) => { currentFilters.buildings = Array.from(e.target.selectedOptions, opt => opt.value); applyFiltersAndSorting(); });
     if(filterFloorSelect) filterFloorSelect.addEventListener('change', (e) => { currentFilters.floors = Array.from(e.target.selectedOptions, opt => opt.value); applyFiltersAndSorting(); });
+    if(filterFloorPlanSelect) filterFloorPlanSelect.addEventListener('change', (e) => { currentFilters.floorPlans = Array.from(e.target.selectedOptions, opt => opt.value); applyFiltersAndSorting(); });
     if(filterStyleSelect) filterStyleSelect.addEventListener('change', (e) => { currentFilters.style = e.target.value; applyFiltersAndSorting(); });
     if(filterUpdatedCheckbox) filterUpdatedCheckbox.addEventListener('change', (e) => { currentFilters.updatedOnly = e.target.checked; applyFiltersAndSorting(); });
     if(sortBySelect) sortBySelect.addEventListener('change', (e) => { currentSort = e.target.value; applyFiltersAndSorting(); });
@@ -258,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     if(resetButton) resetButton.addEventListener('click', () => {
-        currentFilters = { buildings: [], floors: [], style: 'all', updatedOnly: false };
+        currentFilters = { buildings: [], floors: [], floorPlans: [], style: 'all', updatedOnly: false };
         currentSort = 'name-asc';
         document.querySelectorAll('select, input[type="checkbox"]').forEach(el => { if (el.type === 'checkbox') el.checked = false; else { el.selectedIndex = 0; Array.from(el.options).forEach(o => o.selected = false); } });
         applyFiltersAndSorting();

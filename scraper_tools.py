@@ -10,28 +10,22 @@
 # license           : MIT
 # py version        : 3.12.5 (must run on 3.10 or higher)
 #==============================================================================
-from time import perf_counter
+import os
+import platform
+import subprocess
+from time import perf_counter, sleep
 from collections.abc import Callable
 
-# from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import undetected_chromedriver as uc
-from pyvirtualdisplay import Display
-
-
 from element_find import FindElement
 from element_wait_until import WaitUntilElement
 
-
 def goto_homepage(function: Callable) -> Callable:
-		def wrapper(self, *args, **kwargs):
-			result = function(self, *args, **kwargs)
-			self.open_link(self.homepage_url)
-			return result
-		return wrapper
-
+	def wrapper(self, *args, **kwargs):
+		result = function(self, *args, **kwargs)
+		self.open_link(self.homepage_url)
+		return result
+	return wrapper
 
 class ScraperTools(WaitUntilElement, FindElement):
 
@@ -39,28 +33,22 @@ class ScraperTools(WaitUntilElement, FindElement):
 		if not init:
 			return
 		tic = perf_counter()
-		display = Display(visible=0, size=(800, 600))
-		display.start()
-		capabilities = DesiredCapabilities.CHROME
-		capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}  # type: ignore[assignment]
+		
 		options = uc.ChromeOptions()
-		# user_data_dir = os.path.abspath("selenium_data")
-		# options.add_argument("--autoplay-policy=no-user-gesture-required")
-		# options.add_argument("log-level=3")
 		options.add_argument("--no-sandbox")
-		# options.add_experimental_option("prefs", {"download_restrictions": 3})  # Disable downloads
-		# options.add_argument(f"user-data-dir={user_data_dir}")
-		# options.add_argument("--ignore-certificate-errors-spki-list")
-		# # for extension in os.listdir("chrome_extensions"):
-		# # 	options.add_extension(f"chrome_extensions/{extension}")
-		# if HEADLESS:
-		# 	options.add_argument("--headless")
-		# 	options.add_argument("--window-size=1920,1080")
-		# 	# options.add_argument("--disable-gpu")
-		# 	options.add_argument("--mute-audio")
-		self.driver = uc.Chrome(options=options)
-		self.display = display
+		options.add_argument("--disable-dev-shm-usage")
+		
+		# Improved headless settings for bypassing detection
+		# Using the new headless mode which is harder to detect
+		options.add_argument("--headless=new")
+		options.add_argument("--window-size=1920,1080")
+		
+		# Custom User-Agent to look more like a real browser
+		options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
+
+		self.driver = uc.Chrome(options=options, version_main=146)
 		super().__init__(self.driver)
+		
 		toc = perf_counter()
 		print(f"Completed init in {toc-tic:.2f}s.")
 
@@ -70,9 +58,7 @@ class ScraperTools(WaitUntilElement, FindElement):
 	def redirect(self, url: str):
 		if self.current_url() == url:
 			return
-		# print("Redirecting to correct URL...")
 		self.open_link(url)
-		# print(self.current_url())
 
 	def resume_video(self):
 		self.driver.execute_script(
@@ -94,10 +80,11 @@ class ScraperTools(WaitUntilElement, FindElement):
 		return self.driver.current_url
 
 	def close(self):
-		self.driver.close()
-		self.driver.quit()
-		# self.display.stop()
-		# print("Closed driver.")
+		try:
+			self.driver.close()
+			self.driver.quit()
+		except Exception:
+			pass
 
 	def refresh(self):
 		self.driver.refresh()

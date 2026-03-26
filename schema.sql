@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS apartments (
 	name TEXT PRIMARY KEY,
 	floor TEXT NOT NULL,
+	floor_plan TEXT, -- e.g., Eastview, Highwood, etc.
 	style TEXT,
 	page_url TEXT NOT NULL,
 	price INTEGER NOT NULL,
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS apartments (
 CREATE TABLE IF NOT EXISTS deleted_apartments (
 	name TEXT PRIMARY KEY,
 	floor TEXT NOT NULL,
+	floor_plan TEXT,
 	style TEXT,
 	page_url TEXT NOT NULL,
 	price INTEGER NOT NULL,

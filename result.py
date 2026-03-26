@@ -23,10 +23,11 @@ except ImportError:
 
 class Result(dict):
 	# __init__, __str__, sanitize remain the same...
-	def __init__(self, name: str, floor: str, style: str | None, page_url: str, price: int, details: list[str] | str, scraper_object: object | None = None, created_at: int | None = None, updated_at: int | None = None, **kwargs):
+	def __init__(self, name: str, floor: str, floor_plan: str | None, style: str | None, page_url: str, price: int, details: list[str] | str, scraper_object: object | None = None, created_at: int | None = None, updated_at: int | None = None, **kwargs):
 		self.scraper_object = scraper_object
 		self.name = name
 		self.floor = floor
+		self.floor_plan = floor_plan
 		self.style = style
 		self.page_url = page_url
 		self.price = price
@@ -47,7 +48,7 @@ class Result(dict):
 	def __str__(self):
 		created_str = datetime.fromtimestamp(self.created_at).strftime('%Y-%m-%d %H:%M:%S') if self.created_at else 'N/A'
 		updated_str = datetime.fromtimestamp(self.updated_at).strftime('%Y-%m-%d %H:%M:%S') if self.updated_at else 'N/A'
-		return (f"Name: {self.name}\nFloor: {self.floor}\nStyle: {self.style}\n"
+		return (f"Name: {self.name}\nFloor Plan: {self.floor_plan}\nFloor: {self.floor}\nStyle: {self.style}\n"
 				f"Page URL: {self.page_url}\nPrice: ${self.price:,}\nDetails: {', '.join(self.details)}\n"
 				f"Created At: {created_str}\nUpdated At: {updated_str}\n" + ("-" * 40))
 
@@ -77,13 +78,13 @@ class Result(dict):
 		return [Result(**dict(row)) for row in results_rows] if results_rows else []
 
 	@staticmethod
-	def create(name, floor, style, page_url, price, details):
+	def create(name, floor, floor_plan, style, page_url, price, details):
 		current_ts = int(time())
 		db = get_db()
 		try:
 			db.execute(
-				"INSERT INTO apartments (name, floor, style, page_url, price, details, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-				(name, floor, style, page_url, price, str(details), current_ts, current_ts)
+				"INSERT INTO apartments (name, floor, floor_plan, style, page_url, price, details, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+				(name, floor, floor_plan, style, page_url, price, str(details), current_ts, current_ts)
 			)
 			db.commit()
 			logging.info(f"Created apartment record: {name}")
@@ -104,10 +105,11 @@ class Result(dict):
 					logging.warning(f"Attempted to move non-existent apartment: {name}")
 					return
 
-				# 2. Insert it into the deleted_apartments table
+				# 2. Insert it into the deleted_apartments table (now has 9 columns + 1 deleted_at)
+				# Column list: name, floor, floor_plan, style, page_url, price, details, created_at, updated_at, deleted_at
 				db.execute(
-					"""INSERT INTO deleted_apartments (name, floor, style, page_url, price, details, created_at, updated_at, deleted_at)
-					   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+					"""INSERT INTO deleted_apartments (name, floor, floor_plan, style, page_url, price, details, created_at, updated_at, deleted_at)
+					   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
 					(*apartment_to_move, int(time()))
 				)
 
@@ -126,20 +128,20 @@ class Result(dict):
 
 		if not existing:
 			logging.info(f"Apartment {self.name} not found in DB. Creating...")
-			self.create(self.name, self.floor, self.style, self.page_url, self.price, self.details)
+			self.create(self.name, self.floor, self.floor_plan, self.style, self.page_url, self.price, self.details)
 			return
 
 		existing_details_list = existing.details if isinstance(existing.details, list) else []
 		
-		if all([self.price == existing.price, self.floor == existing.floor, self.style == existing.style,
+		if all([self.price == existing.price, self.floor == existing.floor, self.floor_plan == existing.floor_plan, self.style == existing.style,
 				self.details == existing_details_list, self.page_url == existing.page_url]):
 			return
 
 		logging.info(f"Result {self.name} has changed. Updating...")
 		try:
 			db.execute(
-				"UPDATE apartments SET floor = ?, style = ?, page_url = ?, price = ?, details = ?, updated_at = ? WHERE name = ?",
-				(self.floor, self.style, self.page_url, self.price, str(self.details), current_ts, self.name)
+				"UPDATE apartments SET floor = ?, floor_plan = ?, style = ?, page_url = ?, price = ?, details = ?, updated_at = ? WHERE name = ?",
+				(self.floor, self.floor_plan, self.style, self.page_url, self.price, str(self.details), current_ts, self.name)
 			)
 			db.commit()
 			logging.info(f"Updated apartment record: {self.name}")
